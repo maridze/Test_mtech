@@ -23,3 +23,26 @@ Packages содержит информацию о зарплате.
 # Задание на знание SQL 2
 
 Дана таблица Projects, в которой содержатся данные о начале и завершении задач. Длительность 1 задачи равна 1 дню. Если задачи выполняются подряд, они относятся к 1 проекту.
+```sql
+    WITH ProjectGroups AS (
+        SELECT 
+            Task_ID,
+            Start_Date,
+            End_Date,
+            DATE(Start_Date, '-' || (ROW_NUMBER() OVER (ORDER BY Start_Date) - 1) || ' DAY') AS GroupDate
+        FROM Projects
+    ),
+    ProjectRanges AS (
+        SELECT 
+            MIN(Start_Date) AS Project_Start,
+            MAX(End_Date) AS Project_End,
+            GroupDate
+        FROM ProjectGroups
+        GROUP BY GroupDate
+    )
+    SELECT 
+        Project_Start,
+        Project_End
+    FROM ProjectRanges
+    ORDER BY (JULIANDAY(Project_End) - JULIANDAY(Project_Start) + 1), Project_Start;
+```
